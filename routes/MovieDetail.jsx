@@ -43,7 +43,7 @@ export default function MovieDetail({ navigation ,route}) {
         <ScrollView style={[styles.container,{backgroundColor:theme.colors.background}]}>
         {loading ? (
             <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="white" />
+                <ActivityIndicator size="large" color="green" style={{flex:1,justifyContent:"center",alignItems:"center",}} />
             </View>
             ) :
             (<View style={{backgroundColor:theme.colors.backgroundColor}}>
@@ -171,5 +171,6 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor:"red",
       },
 });

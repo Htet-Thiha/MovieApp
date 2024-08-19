@@ -1,95 +1,84 @@
-import { useEffect, useRef, useState,useContext } from 'react';
-import {View,FlatList,StyleSheet,SafeAreaView,TouchableOpacity,ActivityIndicator} from 'react-native';
+import { useContext } from 'react';
+import { View, FlatList, StyleSheet, SafeAreaView, TouchableOpacity, ActivityIndicator, Button } from 'react-native';
 import MovieLapCard from '../components/MovieLapCard';
 import { ThemeContext } from '../libs/Theme';
+import { useInfiniteQuery } from 'react-query';
 
-
-
-
-export default function ListAllPage({ route, navigation }){
-    const [loading, setLoading] = useState(true);
-    const [data,setData] = useState([]);
-    const [searchData , setSearchData ] = useState([]);
-    const [page,setPage] = useState(1);
-    const flashListRef = useRef();
+export default function ListAllPage({ route, navigation }) {
     const { api } = route.params;
     const { theme } = useContext(ThemeContext);
-    const fetchApi=async(api)=>{
-      try{
-        const res = await fetch(api,{
-          method:'GET',
-          headers:{
-            accept:'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkM2I3N2U5M2Q3Y2RmNzRkNTRmNWVlNWYxZmE1M2MxYiIsIm5iZiI6MTcyMjkxNjk0Ni42NDIzMzQsInN1YiI6IjY2OTBkZDFlMzk3ZDdlNmRhODgwOTNmZSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Y8B_L1rwvOuVJIeWoNV5TUCOHrQ3XVIRvjgyu6zpVOU'
-          }
+
+    // Fetch function
+    const fetchMovies = async ({ pageParam = 1 }) => {
+        const response = await fetch(`https://api.themoviedb.org/3/movie/${api}?language=en-US&page=${pageParam}`, {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJkM2I3N2U5M2Q3Y2RmNzRkNTRmNWVlNWYxZmE1M2MxYiIsIm5iZiI6MTcyMjkxNjk0Ni42NDIzMzQsInN1YiI6IjY2OTBkZDFlMzk3ZDdlNmRhODgwOTNmZSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.Y8B_L1rwvOuVJIeWoNV5TUCOHrQ3XVIRvjgyu6zpVOU'
+              }
         });
-  
-        const resJ = await res.json();
-  
-        if (resJ && Array.isArray(resJ.results)) {
-            setData(prevData => [...prevData, ...resJ.results]);
-        } else {
-            console.error("Unexpected data format:", resJ);
-        }
-      }catch(error){
-        console.error('Failed to fetch data:', error);
-
-       } finally {
-          setLoading(false);
-      }
-
-    }
-    useEffect(()=>{
-      fetchApi(`https://api.themoviedb.org/3/movie/${api}?language=en-US&page=${page}`)
-    },[page])
-
-    useEffect(()=>{
-      setSearchData(data);
-    },[data])
-
-    const handleEndReached = () => {
-        setPage(prevPage => prevPage + 1);
+        const data = await response.json();
+        return {
+            results: data.results,
+            nextPage: data.page + 1,
+        };
     };
 
-   
-    return(
+    const {
+        data,
+        fetchNextPage,
+        hasNextPage,
+        isFetching,
+        isLoading,
+        isError
+    } = useInfiniteQuery(
+        `${api}`,
+        fetchMovies,
+        {
+            getNextPageParam: (lastPage) => lastPage.nextPage, 
+        }
+    );
 
-    <SafeAreaView style={[styles.container,{ backgroundColor: theme.colors.background }]}>
-       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="white" />
-        </View>
-      ) :
-      (<FlatList
-      ref={flashListRef}
-      data={searchData} 
-            renderItem={({item,index})=>{
-          return (
-            <TouchableOpacity onPress={()=>navigation.navigate('MovieDetail',{name:item.title,key:item})}>
-                <MovieLapCard
-                title={item.title}
-                releaseDate={item.release_date}
-                image={item.poster_path}
-                overview={item.overview}
-                vote_average={item.vote_average}
-                />
-            </TouchableOpacity>
-          )
-      }}
-      keyExtractor={item => item.id}
-      onEndReached={handleEndReached}
-      onEndReachedThreshold={0.7}
-      />)}
-    </SafeAreaView>
-        
-    )
+    if (isLoading) return <ActivityIndicator size="large" color="green" />;
+    if (isError) return <Text>Error loading data...</Text>;
+
+    // Combine all pages into one array
+    console.log("data->",data);
+    console.log("dataPage",data.pages);
+    const items = data.pages.flatMap(page => page.results);
+
+    return (
+        <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+            <FlatList
+                data={items}
+                renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => navigation.navigate('MovieDetail', { name: item.title, key: item })}>
+                        <MovieLapCard
+                            title={item.title}
+                            releaseDate={item.release_date}
+                            image={item.poster_path}
+                            overview={item.overview}
+                            vote_average={item.vote_average}
+                        />
+                    </TouchableOpacity>
+                )}
+                keyExtractor={item => item.id} 
+                onEndReached={() => {
+                    if (hasNextPage && !isFetching) {
+                        fetchNextPage();
+                    }
+                }}
+                onEndReachedThreshold={0.7}
+                ListFooterComponent={isFetching ? <ActivityIndicator size="large" color="white" /> : null}
+            />
+        </SafeAreaView>
+    );
 }
 
-const styles=StyleSheet.create({
-  container:{
-    // backgroundColor:'black',
-    justifyContent:"center",
-    alignItems:"center",
-    flex:1
-  }
-})
+const styles = StyleSheet.create({
+    container: {
+        justifyContent: "center",
+        alignItems: "center",
+        flex: 1
+    }
+});

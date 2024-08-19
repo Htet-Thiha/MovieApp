@@ -1,7 +1,7 @@
 import React, { useContext, useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet } from 'react-native';
 import { AuthContext } from '../libs/AuthContext';
-
+import Loading from '../components/Loading';
 export default function LogIn({ navigation }) {
     const [username, setUsername] = useState('');
     const [pass, setPass] = useState('');
@@ -14,7 +14,11 @@ export default function LogIn({ navigation }) {
             setPass('');
         }
     };
+    const { isLoading } = useContext(AuthContext);
 
+    if (isLoading) {
+        return <Loading />;
+    }
     return (
         <View>
             <Text style={styles.title}>Sign In</Text>

@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { View, Text,Button,StyleSheet,ScrollView,SafeAreaView } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
-import { AuthContext, AuthProvider } from '../libs/AuthContext';
 import { useContext } from 'react';
 
 import HorizontalMovieList  from '../components/HorizontalMovieList';
@@ -9,7 +8,6 @@ import { ThemeContext } from '../libs/Theme';
 
 export default function HomeScreen({navigation}) {
 
-    const { logout } = useContext(AuthContext);
     const { theme } = useContext(ThemeContext);
 
 
@@ -33,7 +31,7 @@ export default function HomeScreen({navigation}) {
                         <ChevronRight style={styles.viewLink} size={30}/>
                     </View>
                 </View>
-                <HorizontalMovieList api={popularApi} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
+                <HorizontalMovieList api={popularApi} qKey={'popularList'} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
 
                 <View style={styles.headwrapper}>
                     <View>
@@ -47,7 +45,7 @@ export default function HomeScreen({navigation}) {
                         <ChevronRight style={styles.viewLink} size={30}/>
                     </View>
                 </View>
-                <HorizontalMovieList api={nowPlaying} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
+                <HorizontalMovieList api={nowPlaying} qKey={'nowPlayingList'} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
 
                 <View style={styles.headwrapper}>
                     <View>
@@ -61,7 +59,7 @@ export default function HomeScreen({navigation}) {
                         <ChevronRight style={styles.viewLink} size={30}/>
                     </View>
                 </View>
-                <HorizontalMovieList api={topRated} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
+                <HorizontalMovieList api={topRated} qKey={'topRatedList'}  onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
 
                 <View style={styles.headwrapper}>
                     <View>
@@ -75,7 +73,7 @@ export default function HomeScreen({navigation}) {
                         <ChevronRight style={styles.viewLink} size={30}/>
                     </View>
                 </View>
-                <HorizontalMovieList api={upcoming} onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
+                <HorizontalMovieList api={upcoming} qKey={'upcomingList'}  onhandle={(item) => navigation.navigate('MovieDetail',{name:item.title,key:item})}/>
 
             </ScrollView>
         </SafeAreaView>
